@@ -1,0 +1,5 @@
+*.mp3
+App_Resources/
+node_modules/
+platforms/
+app/LICENSE

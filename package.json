@@ -1,0 +1,12 @@
+{
+  "nativescript": {
+    "id": "org.nativescript.6trak",
+    "tns-ios": {
+      "version": "1.4.1"
+    }
+  },
+  "dependencies": {
+    "nativescript-sound": "^1.0.4",
+    "tns-core-modules": "1.4.0"
+  }
+}
