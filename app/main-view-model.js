@@ -3,10 +3,9 @@ var observable = require("data/observable");
 var sound = require("nativescript-sound");
 
 var timer = require("timer");
-//=var dialogsModule = require("ui/dialogs");
+//var dialogsModule = require("ui/dialogs");
 
 var Curr = '';
-var paused = false;
 var pad = {
     "Ab_Major":       sound.create( "~/tracks/Ab Major.mp3" ),
     "Ab_Major_Drive": sound.create( "~/tracks/Ab Major Drive.mp3" ),
@@ -59,73 +58,65 @@ var pad = {
 };
 var Padkey = (function (_super) {
     __extends(Padme, _super);
+
     function Padme() {
         _super.call(this);
         this.set("sVIdx", "");
         this.set("plybtn", "");
         this.set("drvbtn", "");
-        //this.set("info", "");
-        //this.set("info2", "");
-    }
 
+        this.set("info", "");
+        this.set("info2", "");
+    }
+    var timeoutVar;
+    function quitLooper () {
+        timer.clearTimeout(timeoutVar);
+        Curr = '';
+    }
     Padme.prototype.Start = function (args) {
         // dialogsModule.alert({message: args.object.song,okButtonText: "OK"});
 
-        this.set("sVIdx", args.view.tag);
-        this.set("plybtn", "on");
-        this.set("drvbtn", "");
         var song = args.view.song;
-        this.Reset();//stop Curr
-        pad[song].play();
+        pad[song].play();//start song
+        if(Curr !== ''){
+            pad[Curr].fastout();//fade what was playing
+            quitLooper();//clear its timer
+        }
         Curr = song;
         this.Loop();
-        paused = false;
-
+        this.set("plybtn", "on");//play btn color
+        this.set("sVIdx", args.view.tag);//pad btn color
+        this.set("drvbtn", "");//drive btn color
     };
 
     Padme.prototype.Stop = function () {
         if(Curr !== ''){
-            if(!paused){
-                pad[Curr].stop();
-                paused = true;
-                this.set("plybtn", "pbpaused");
-            }else{
-                pad[Curr].play();                
-                paused = false;
-                this.set("plybtn", "on");
-            }
+            pad[Curr].fastout();
         }
+        this.set("sVIdx", "");//pad btn color
+        this.set("plybtn", "");
+        this.set("drvbtn", "");
+        quitLooper();
     };
-    Padme.prototype.Reset = function () {
-        if(Curr !== ''){
-            pad[Curr].reset();
-            Curr = '';
-            paused = false;
-        }
-    };
+
     Padme.prototype.Drive = function () {
         if(Curr !== ''){
-            if( Curr.indexOf("_Drive") < 0 ){
-                var currTime = pad[Curr].getTime();
-                var driver = Curr.split('dup')[0] + "_Drive";
-                pad[driver].fadeinAt(currTime);
-                pad[Curr].fadeout();//fade stop Curr
-                Curr = driver;
-                paused = false;
-                this.set("plybtn", "on");
-                this.set("drvbtn", "on");
-
-            }else if( Curr.indexOf("_Drive") >= 0 ){
-                var currTime2 = pad[Curr].getTime();
-                var CurrNonDrive = Curr.split("_Drive")[0];
-                pad[CurrNonDrive].fadeinAt(currTime2);
-                pad[Curr].fadeout();//fade stop "CurrNonDrive"
+            if( Curr.indexOf("_Drive") >= 0 ){//if curr is Drive
+                //turn off drive
+                var CurrNonDrive = Curr.split("_Drive")[0];//get nonDrive
+                pad[CurrNonDrive].play();
+                pad[Curr].fastout();//fade stop Curr
                 Curr = CurrNonDrive;
-                paused = false;
-                this.set("plybtn", "on");
                 this.set("drvbtn", "");
+            }else{
+                //turn on drive
+                var Drive = Curr.split("Dupe")[0] + "_Drive";//get drive pad
+                pad[Drive].play();
+                pad[Curr].fastout();//fade stop Curr
+                Curr = Drive;
+                this.set("drvbtn", "on");
             }
-            //this.set("info2", Curr);
+            this.set("info2", Curr);
         }
     };
 
@@ -134,38 +125,40 @@ var Padkey = (function (_super) {
             pad[Curr].skipTo( pad[Curr].getDur() - 25 );
         }
     };
-
     Padme.prototype.Loop = function () {
         var that = this;
-        if(Curr !== ''){
-            //that.set("info2", Curr);
-            that.run = function () {
+        that.set("info2", Curr);
+        that.run = function () {
+            //dialogsModule.alert({message: Curr,okButtonText: "OK"});
+            if(Curr !== ''){
+
                 that.tl =  pad[Curr].getTimeLeft();
-                //that.set("info", parseInt(that.tl) );
+                that.set("info", parseInt(that.tl) );
 
                 if (that.tl < 20){
                     pad[Curr].fadeout();
-                    if( Curr.indexOf('dup') >= 0 ){
-                        Curr = Curr.split('dup')[0];
-                        pad[Curr].fadeinAt("15");
-                    }else{
+                    if( Curr.indexOf("Dupe") >= 0 ){//if playing dupe
+                        Curr = Curr.split("Dupe")[0];
+                        //play non dupe
+                        pad[Curr].play();
+                    }else{//if not playing dupe
                         var track = Curr.split('_').join(' ');
-                        if(!pad[Curr+"dup"]){
-                            pad[Curr+"dup"] = sound.create("~/tracks/"+track+".mp3");
+                        if(!pad[Curr+"Dupe"]){//create dupe if needed
+                            pad[Curr+"Dupe"] = sound.create("~/tracks/"+track+".mp3");
                         }
-                        pad[Curr+"dup"].fadeinAt("15");
-                        Curr = Curr+"dup";
+                        pad[Curr+"Dupe"].play();//play dupe
+                        Curr = Curr+"Dupe";
                     }
-                    //that.set("info2", Curr);
+                    that.set("info2", Curr);
                     that.Loop();
                 }else{
-                    var self = that;
-                    timer.setTimeout(self.run, 5000);
+                    timeoutVar = timer.setTimeout(that.run, 5000);
                 }
-            };
-            that.run();
-        }
+            }
+        };
+        that.run();
     };
+
     // Padme.prototype.vol = function (args) {
     //     if(Curr !== ''){
     //         this.set("info", pad[Curr].getVol() );
@@ -174,12 +167,12 @@ var Padkey = (function (_super) {
     // Padme.prototype.Fadeout = function () {
     //     if(Curr !== ''){
     //         this.set("info", pad[Curr].getTime() );
-    //         var trim = Curr.split('dup')[0];
+    //         var trim = Curr.split("Dupe")[0];
     //         var track = trim.split('_').join(' ');
     //         pad[Curr].fadeout();
-    //         pad[Curr+"dup"] = sound.create("~/tracks/"+track+".mp3");
-    //         pad[Curr+"dup"].fadeinAt("5");
-    //         Curr = Curr+"dup";
+    //         pad[Curr+"Dupe"] = sound.create("~/tracks/"+track+".mp3");
+    //         pad[Curr+"Dupe"].fadeinAt("5");
+    //         Curr = Curr+"Dupe";
     //         // Curr = Curr+"i";
 
     //     }
