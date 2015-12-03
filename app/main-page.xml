@@ -129,20 +129,19 @@
       </GridLayout>
       <Label text="DRIVE ON/OFF" tap="{{ Drive }}" textWrap="true" cssClass="{{ 'btn ' + drvbtn }}" col="1" horizontalAlignment="center" verticalAlignment="center"/>
        
-<!--       <GridLayout col="2" rows="auto,auto,auto" verticalAlignment="center">
+      <GridLayout col="2" rows="auto,auto,auto" verticalAlignment="center">
         <Label cssClass="dssd" row="0" text="SOUND PACK:" horizontalAlignment="center" />
         <Label cssClass="dssd" row="1" text="- -" horizontalAlignment="center" />
         <Label cssClass="dssd" row="2" text="-" horizontalAlignment="center" />
-      </GridLayout> -->
-     
-      
-      <GridLayout col="2">
-        <StackLayout verticalAlignment="center">
-          <Label cssClass="dssd" text="{{info +' s'}}"/>
-          <Label cssClass="btn2" text="Loop test"  tap="{{ skipToEnd }}"/>
-          <Label cssClass="dssd" text="{{info2}}"/>
-        </StackLayout>
       </GridLayout>
+     
+      <!-- <GridLayout col="2"> -->
+        <!-- <StackLayout verticalAlignment="center"> -->
+          <!-- <Label cssClass="dssd" text="{{info +' s'}}"/> -->
+          <!-- <Label cssClass="btn2" text="Loop test"  tap="{{ skipToEnd }}"/> -->
+          <!-- <Label cssClass="dssd" text="{{info2}}"/> -->
+        <!-- </StackLayout> -->
+      <!-- </GridLayout> -->
     </GridLayout>
   </GridLayout>
 </Page>

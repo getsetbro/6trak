@@ -6,7 +6,6 @@
     }
   },
   "dependencies": {
-    "nativescript-sound": "^1.0.4",
     "tns-core-modules": "1.4.0"
   }
 }
